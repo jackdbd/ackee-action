@@ -1,0 +1,7 @@
+{
+    "extends": "./tsconfig.json",
+    // this file exists only to tell the ESlint parser to lint not just the
+    // typescript files in src, but also the ones in __tests__
+    "include": ["./src/**/*.ts", "./__tests__/**/*.ts"]
+  }
+  
