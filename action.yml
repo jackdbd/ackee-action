@@ -1,11 +1,35 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Ackee Analytics Action'
+description: 'Fetch analytics data from a self-hosted Ackee server'
+author: 'Giacomo Debidda'
+
 inputs:
-  milliseconds: # change this
+  endpoint:
+    description: 'The URL for the /api endpoint of your Ackee GraphQL API server. Example: https://demo.ackee.electerious.com/api'
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+  username:
+    description: 'Username to authenticate with your GraphQL API server.'
+    required: true
+  password:
+    description: 'Password to authenticate with your GraphQL API server.'
+    required: true
+  domain_id:
+    description: 'The ID of the domain you are monitoring with Ackee.'
+    required: true
+  num_top_pages:
+    description: 'The top-performing N pages of the domain.'
+    default: '10'
+  query:
+    description: 'Your GraphQL query'
+    required: false
+
+outputs:
+  data:
+    description: 'The `data` key of the response body received from the Ackee GraphQL API server.'
+
 runs:
   using: 'node12'
   main: 'dist/index.js'
+
+branding:
+  icon: 'bar-chart'
+  color: 'yellow'

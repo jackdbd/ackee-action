@@ -1,0 +1,74 @@
+name: 'CI'
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - 'releases/*'
+jobs:
+  build-and-test:
+    name: CI on ${{ matrix.os }}, Node ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        node: ['12.x', '14.x']
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Use Node ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install dependencies
+        run: rm package-lock.json && npm install # or maybe `npm ci`, or https://github.com/bahmutov/npm-install
+      - name: Build
+        run: npm run build
+      - name: Test
+        # TODO: this does NOT work on windows-latest
+        run: |
+          INPUT_ENDPOINT=${{ secrets.INPUT_ENDPOINT }} \
+          INPUT_USERNAME=${{ secrets.INPUT_USERNAME }} \
+          INPUT_PASSWORD=${{ secrets.INPUT_PASSWORD }} \
+          INPUT_DOMAIN_ID=${{ secrets.INPUT_DOMAIN_ID }} \
+          npm run test --ci --coverage
+      - name: Upload coverage report to Coveralls
+        # https://github.com/coverallsapp/github-action
+        uses: coverallsapp/github-action@v1.1.2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+  test:
+    name: Test on clean machine, without building
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: Fetch analytics data from an Ackee GraphQL API server
+        id: ackee
+        uses: ./
+        with:
+          endpoint: ${{ secrets.INPUT_ENDPOINT }}
+          username: ${{ secrets.INPUT_USERNAME }}
+          password: ${{ secrets.INPUT_PASSWORD }}
+          domain_id: ${{ secrets.INPUT_DOMAIN_ID }}
+          num_top_pages: '5'
+      - name: Dump data
+        run: echo "${{ steps.ackee.outputs.data }}"
+      - name: Send report to Telegram
+        uses: appleboy/telegram-action@master
+        env:
+          ACKEE_REPORT: ${{ steps.ackee.outputs.data }}
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            🚀 Ackee report!
+            ${{ env.ACKEE_REPORT }}
+      - name: Send report to Slack
+        uses: pullreminders/slack-action@master
+        env:
+          ACKEE_REPORT: ${{ steps.ackee.outputs.data }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        with:
+          args: '{\"channel\":\"${{ env.SLACK_CHANNEL_ID }}\",\"text\":\"${{ env.ACKEE_REPORT }}\"}'
