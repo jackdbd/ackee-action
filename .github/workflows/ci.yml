@@ -1,0 +1,79 @@
+name: 'CI'
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+  push:
+    branches:
+      - main
+      - 'releases/*'
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  build-and-test:
+    name: 📦 Bundle action on [${{ matrix.os }}, Node ${{ matrix.node }}]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node: ['12.x']
+    steps:
+      - name: 🛎️ Checkout repo
+        uses: actions/checkout@v2
+      - name: 🖥️ Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      - name: 👨‍💻 Install dependencies
+        run: npm ci
+      - name: 🔍 Test
+        env:
+          INPUT_ENDPOINT: ${{ secrets.INPUT_ENDPOINT }}
+          INPUT_USERNAME: ${{ secrets.INPUT_USERNAME }}
+          INPUT_PASSWORD: ${{ secrets.INPUT_PASSWORD }}
+          INPUT_DOMAIN_ID: ${{ secrets.INPUT_DOMAIN_ID }}
+        run: npm run test:ci
+      - name: ⬆️ Upload coverage report to Coveralls
+        # https://github.com/coverallsapp/github-action
+        uses: coverallsapp/github-action@v1.1.2
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  integration-test:
+    name: 📈 Run action without building
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛎️ Checkout repo
+        uses: actions/checkout@v2
+      - name: ⬇️ Fetch data from Ackee
+        id: ackee
+        uses: ./ # TODO: replace con jackdbd/ackee-action@v1 when published
+        with:
+          endpoint: ${{ secrets.INPUT_ENDPOINT }}
+          username: ${{ secrets.INPUT_USERNAME }}
+          password: ${{ secrets.INPUT_PASSWORD }}
+          domain_id: ${{ secrets.INPUT_DOMAIN_ID }}
+          num_top_pages: '5'
+      - name: Dump data
+        run: echo "${{ steps.ackee.outputs.data }}"
+      - name: 📨 Send report to Telegram
+        uses: appleboy/telegram-action@master
+        env:
+          ACKEE_REPORT: ${{ steps.ackee.outputs.data }}
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            🚀 Ackee report!
+
+            ${{ env.ACKEE_REPORT }}
+      - name: 📨 Send report to Slack
+        uses: pullreminders/slack-action@master
+        env:
+          ACKEE_REPORT: ${{ steps.ackee.outputs.data }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        with:
+          args: '{\"channel\":\"${{ env.SLACK_CHANNEL_ID }}\",\"text\":\"${{ env.ACKEE_REPORT }}\"}'

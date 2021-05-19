@@ -1,0 +1,13 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "PRE PUSH HOOK [destination remote: $1] [location remote: $2]"
+
+# get the total-1 commits (to exclude the first, Initial commit)
+n=$(git rev-list --count HEAD)
+# echo "n ${n} n-1 $(expr $n - 1)"
+from=$(printf HEAD~$(expr $n - 1))
+
+echo "Run commitlint --from ${from} --to HEAD"
+npx commitlint --from ${from} --to HEAD --verbose
+# npx commitlint --print-config

@@ -1,19 +1,71 @@
+import { inspect } from 'util'
 import * as core from '@actions/core'
-import {wait} from './wait'
+import { getBearerToken } from './auth'
+import { makeAnalyticsClient, NUM_TOP_PAGES } from './analytics'
 
-async function run(): Promise<void> {
+const NAME = '🚀 [ackee-action]'
+
+export async function run(): Promise<void> {
   try {
-    const ms: string = core.getInput('milliseconds')
-    core.debug(`Waiting ${ms} milliseconds ...`) // debug is only output if you set the secret `ACTIONS_RUNNER_DEBUG` to true
+    // core.debug() prints only when the secret `ACTIONS_RUNNER_DEBUG` is true
 
-    core.debug(new Date().toTimeString())
-    await wait(parseInt(ms, 10))
-    core.debug(new Date().toTimeString())
+    core.info(`${NAME} Check required inputs`)
+    // All of these input parameters are required. We throw if any are missing.
+    const endpoint = core.getInput('endpoint', { required: true })
+    const username = core.getInput('username', { required: true })
+    const password = core.getInput('password', { required: true })
+    const domainId = core.getInput('domain_id', { required: true })
 
-    core.setOutput('time', new Date().toTimeString())
+    core.info(`${NAME} Process optional inputs, set defaults`)
+
+    const query = core.getInput('query')
+    core.info(`${NAME} INPUT[query] = ${query}`)
+
+    const numTopPages = Number(core.getInput('num_top_pages')) || NUM_TOP_PAGES
+    core.info(`${NAME} INPUT[num_top_pages] = ${numTopPages}`)
+
+    core.debug(`${NAME} Authenticate with the Ackee GraphQL server`)
+    const token = await getBearerToken({ endpoint, username, password })
+    core.saveState('tokenObtained', true)
+    core.debug(`${NAME} Bearer token obtained from Ackee server`)
+
+    core.debug(`${NAME} Create analytics GraphQL client`)
+    const analytics = makeAnalyticsClient({
+      endpoint,
+      domainId,
+      numTopPages,
+      token
+    })
+    core.saveState('clientInitialized', true)
+
+    core.debug(`${NAME} Fetch data from Ackee GraphQL server`)
+    core.saveState('fetchStarted', true)
+    const domains = await analytics.domains()
+    const domainsFacts = await analytics.domainsFacts()
+    const events = await analytics.events()
+    const facts = await analytics.facts()
+    const topPages = await analytics.topPages()
+    core.saveState('fetchEnded', true)
+
+    // stringify or not? Probably yes...
+    // https://github.com/actions/toolkit/issues/370
+    const data = JSON.stringify({
+      domains,
+      domainsFacts,
+      events,
+      facts,
+      topPages
+    })
+    core.debug(`${NAME} OUTPUT[data] = ${data}`)
+    core.setOutput('data', data)
   } catch (error) {
-    core.setFailed(error.message)
+    core.debug(inspect(error))
+    core.setFailed((error as Error).message)
   }
 }
+// TODO: use saveState('pidToKill') to perform a cleanup
+// https://github.com/actions/toolkit/blob/main/packages/core/README.md
 
-run()
+// the `void` operator here is to make ESlint happy. It's this rule:
+// https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/docs/rules/no-floating-promises.md
+void run()

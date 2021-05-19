@@ -1,105 +1,136 @@
-<p align="center">
-  <a href="https://github.com/actions/typescript-action/actions"><img alt="typescript-action status" src="https://github.com/actions/typescript-action/workflows/build-test/badge.svg"></a>
-</p>
+# Ackee Analytics Action 📊 📈
 
-# Create a JavaScript Action using TypeScript
+![ci workflow](https://github.com/jackdbd/ackee-action/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/jackdbd/ackee-action/badge.svg?branch=main)](https://coveralls.io/github/jackdbd/ackee-action?branch=main) [![CodeFactor](https://www.codefactor.io/repository/github/jackdbd/ackee-action/badge)](https://www.codefactor.io/repository/github/jackdbd/ackee-action)
 
-Use this template to bootstrap the creation of a TypeScript action.:rocket:
+GitHub action to generate an Ackee analytics report.
 
-This template includes compilation support, tests, a validation workflow, publishing, and versioning guidance.  
+## Inputs
 
-If you are new, there's also a simpler introduction.  See the [Hello World JavaScript Action](https://github.com/actions/hello-world-javascript-action)
+### `endpoint`
 
-## Create an action from this template
+**Required** — The URL for the /api endpoint of your Ackee GraphQL API server. Example: `https://demo.ackee.electerious.com/api`
 
-Click the `Use this Template` and provide the new repo details for your action
+### `username`
 
-## Code in Main
+**Required** — The username that you use to authenticate with your GraphQL API server.
 
-> First, you'll need to have a reasonably modern version of `node` handy. This won't work with versions older than 9, for instance.
+### `password`
 
-Install the dependencies  
-```bash
-$ npm install
-```
+**Required** — The password that you use to authenticate with your GraphQL API server.
 
-Build the typescript and package it for distribution
-```bash
-$ npm run build && npm run package
-```
+### `domain_id`
 
-Run the tests :heavy_check_mark:  
-```bash
-$ npm test
+**Required** — The ID of the domain you are monitoring with Ackee.
 
- PASS  ./index.test.js
-  ✓ throws invalid number (3ms)
-  ✓ wait 500 ms (504ms)
-  ✓ test runs (95ms)
+### `num_top_pages`
 
-...
-```
+Optional — The top-performing N pages of the domain. Defaults to `10`.
 
-## Change action.yml
+## Outputs
 
-The action.yml contains defines the inputs and output for your action.
+### `data`
 
-Update the action.yml with your name, description, inputs and outputs for your action.
+The `data` key of the response body received from the Ackee GraphQL API server.
 
-See the [documentation](https://help.github.com/en/articles/metadata-syntax-for-github-actions)
-
-## Change the Code
-
-Most toolkit and CI/CD operations involve async operations so the action is run in an async function.
-
-```javascript
-import * as core from '@actions/core';
-...
-
-async function run() {
-  try { 
-      ...
-  } 
-  catch (error) {
-    core.setFailed(error.message);
-  }
-}
-
-run()
-```
-
-See the [toolkit documentation](https://github.com/actions/toolkit/blob/master/README.md#packages) for the various packages.
-
-## Publish to a distribution branch
-
-Actions are run from GitHub repos so we will checkin the packed dist folder. 
-
-Then run [ncc](https://github.com/zeit/ncc) and push the results:
-```bash
-$ npm run package
-$ git add dist
-$ git commit -a -m "prod dependencies"
-$ git push origin releases/v1
-```
-
-Note: We recommend using the `--license` option for ncc, which will create a license file for all of the production node modules used in your project.
-
-Your action is now published! :rocket: 
-
-See the [versioning documentation](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-
-## Validate
-
-You can now validate the action by referencing `./` in a workflow in your repo (see [test.yml](.github/workflows/test.yml))
+## Basic Usage
 
 ```yaml
-uses: ./
-with:
-  milliseconds: 1000
+steps:
+  - name: Fetch analytics data from an Ackee GraphQL API server
+    id: ackee
+    uses: 'TODO-action-version-here'
+    with:
+      endpoint: ${{ secrets.ACKEE_API_ENDPOINT }}
+      username: ${{ secrets.ACKEE_USERNAME }}
+      password: ${{ secrets.ACKEE_PASSWORD }}
+      domain_id: ${{ secrets.ACKEE_DOMAIN_ID }}
+  - name: Dump data
+    run: echo ${{ steps.ackee.outputs.data }}
 ```
 
-See the [actions tab](https://github.com/actions/typescript-action/actions) for runs of this action! :rocket:
+*Note*: to access deep values of `outputs.data`, use [fromJSON()](https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#fromjson).
 
-## Usage:
+## Examples
 
-After testing you can [create a v1 tag](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md) to reference the stable and latest V1 action
+### Ackee => Telegram weekly report
+
+```yaml
+name: 'Ackee to Telegram weekly'
+
+on:
+  schedule:
+    # https://crontab.guru/once-a-week
+    - cron:  '0 0 * * 0'
+
+jobs:
+  ackee-weekly-report:
+    name: Send weekly report
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch data from Ackee
+        id: ackee
+        uses: 'TODO-action-version-here'
+        with:
+          endpoint: ${{ secrets.ACKEE_API_ENDPOINT }}
+          username: ${{ secrets.ACKEE_USERNAME }}
+          password: ${{ secrets.ACKEE_PASSWORD }}
+          domain_id: ${{ secrets.ACKEE_DOMAIN_ID }}
+      - name: Send report to Telegram
+        uses: appleboy/telegram-action@master
+        # https://github.com/appleboy/telegram-action
+        # This is a container action, so it must run on Linux (it would fail if
+        # `runs-on` is either `windows-latest` or `macos-latest`)
+        env:
+          ACKEE_REPORT: ${{ steps.ackee.outputs.data }}
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          message: |
+            🚀 Ackee weekly report!
+            ${{ env.ACKEE_REPORT }}
+```
+
+### Ackee => Slack on demand report
+
+```yaml
+name: 'Ackee to Slack on demand'
+
+on:
+  # allow to trigger this workflow manually
+  workflow_dispatch:
+
+jobs:
+  ackee-on-demand-report:
+    name: Send report on demand
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch data from Ackee
+        id: ackee
+        uses: 'TODO-action-version-here'
+        with:
+          endpoint: ${{ secrets.ACKEE_API_ENDPOINT }}
+          username: ${{ secrets.ACKEE_USERNAME }}
+          password: ${{ secrets.ACKEE_PASSWORD }}
+          domain_id: ${{ secrets.ACKEE_DOMAIN_ID }}
+      - name: Send report to Slack
+        uses: pullreminders/slack-action@master
+        # https://github.com/abinoda/slack-action
+        # This is a container action, so it must run on Linux
+        env:
+          ACKEE_REPORT: ${{ steps.ackee.outputs.data }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        with:
+          args: '{\"channel\":\"${{ env.SLACK_CHANNEL_ID }}\",\"text\":\"${{ env.ACKEE_REPORT }}\"}'
+```
+
+You could use the [GitHub CLI](https://github.com/cli/cli) to trigger the workflow
+
+```sh
+# maybe pick a shorter name for your workflow ;-)
+gh workflow run 'Ackee to Slack on demand'
+```
+
+## Features
+
+- pre-push hook with [husky](https://typicode.github.io/husky/#/) so I don't forget to bundle `lib/*` into `dist/index.js` with [ncc](https://github.com/vercel/ncc).
