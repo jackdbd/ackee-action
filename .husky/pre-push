@@ -9,5 +9,5 @@ n=$(git rev-list --count HEAD)
 from=$(printf HEAD~$(expr $n - 1))
 
 echo "Run commitlint --from ${from} --to HEAD"
-npx commitlint --from ${from} --to HEAD --verbose
+# npx commitlint --from ${from} --to HEAD --verbose
 # npx commitlint --print-config
