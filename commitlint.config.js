@@ -1,5 +1,14 @@
 // https://github.com/conventional-changelog/commitlint/tree/master/%40commitlint/config-conventional
-const config = { extends: ['@commitlint/config-conventional'] }
+const config = {
+  extends: ['@commitlint/config-conventional'],
+  //   https://github.com/conventional-changelog/commitlint/blob/master/docs/reference-rules.md
+  rules: {
+    // I configured semantic-release git plugin to create a release commit
+    // message containing release notes in the commit body. This would exceed
+    // the limit set by the config-conventional preset. So I override the rule.
+    'body-max-line-length': [2, 'always', Infinity]
+  }
+}
 
 // As a reminder, a convential commit message has the following structure:
 //////////////////////////
@@ -18,5 +27,7 @@ const config = { extends: ['@commitlint/config-conventional'] }
 // - style
 // - test
 // TODO: what about a type of BREAKING CHANGE?
+
+console.log('=== commitlint config ===', config)
 
 module.exports = config

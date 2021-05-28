@@ -130,7 +130,3 @@ You could use the [GitHub CLI](https://github.com/cli/cli) to trigger the workfl
 # maybe pick a shorter name for your workflow ;-)
 gh workflow run 'Ackee to Slack on demand'
 ```
-
-## Features
-
-- pre-push hook with [husky](https://typicode.github.io/husky/#/) so I don't forget to bundle `lib/*` into `dist/index.js` with [ncc](https://github.com/vercel/ncc).
