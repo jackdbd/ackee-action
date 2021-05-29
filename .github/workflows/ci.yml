@@ -36,6 +36,7 @@ jobs:
           INPUT_DOMAIN_ID: ${{ secrets.INPUT_DOMAIN_ID }}
         run: npm run test:ci
       - name: ⬆️ Upload coverage report to Coveralls
+        continue-on-error: true
         # https://github.com/coverallsapp/github-action
         uses: coverallsapp/github-action@v1.1.2
         with:
