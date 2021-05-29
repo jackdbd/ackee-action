@@ -57,7 +57,7 @@ The `data` key of the response body received from the Ackee GraphQL API server.
 steps:
   - name: Fetch analytics data from an Ackee GraphQL API server
     id: ackee
-    uses: 'TODO-action-version-here'
+    uses: jackdbd/ackee-action@v1.1.0
     with:
       endpoint: ${{ secrets.ACKEE_API_ENDPOINT }}
       username: ${{ secrets.ACKEE_USERNAME }}
@@ -66,8 +66,6 @@ steps:
   - name: Dump data
     run: echo ${{ steps.ackee.outputs.data }}
 ```
-
-*Note*: to access deep values of `outputs.data`, use [fromJSON()](https://docs.github.com/en/actions/reference/context-and-expression-syntax-for-github-actions#fromjson).
 
 ## Examples
 
@@ -83,18 +81,18 @@ on:
 
 jobs:
   ackee-weekly-report:
-    name: Send weekly report
+    name: 7️⃣ Ackee weekly report
     runs-on: ubuntu-latest
     steps:
-      - name: Fetch data from Ackee
+      - name: ⬇️ Fetch data from Ackee
         id: ackee
-        uses: 'TODO-action-version-here'
+        uses: jackdbd/ackee-action@v1.1.0
         with:
           endpoint: ${{ secrets.ACKEE_API_ENDPOINT }}
           username: ${{ secrets.ACKEE_USERNAME }}
           password: ${{ secrets.ACKEE_PASSWORD }}
           domain_id: ${{ secrets.ACKEE_DOMAIN_ID }}
-      - name: Send report to Telegram
+      - name: 📳 Send report to Telegram
         uses: appleboy/telegram-action@master
         # https://github.com/appleboy/telegram-action
         # This is a container action, so it must run on Linux (it would fail if
@@ -106,6 +104,7 @@ jobs:
           token: ${{ secrets.TELEGRAM_TOKEN }}
           message: |
             🚀 Ackee weekly report!
+
             ${{ env.ACKEE_REPORT }}
 ```
 
@@ -125,7 +124,7 @@ jobs:
     steps:
       - name: Fetch data from Ackee
         id: ackee
-        uses: 'TODO-action-version-here'
+        uses: jackdbd/ackee-action@v1.1.0
         with:
           endpoint: ${{ secrets.ACKEE_API_ENDPOINT }}
           username: ${{ secrets.ACKEE_USERNAME }}

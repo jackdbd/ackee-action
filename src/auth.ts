@@ -23,6 +23,7 @@ type GetBearerToken = (config: AckeeAuthConfig) => Promise<BearerToken>
 
 /**
  * TODO: this is CreateTokenInput. How to get the original GraphQL type?
+ * I think the Ackee API server does not allow schema introspection...
  */
 interface CreateToken {
   payload: {

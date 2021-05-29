@@ -1,14 +1,11 @@
 // configuration for semantic-release
 
-// IMPORTANT: this file is executed in a package root, not in the monorepo root.
-// That's why there is this: ../../commitlint.config.js
-// Note: each plugin is configured as an array. It's a bit weird...
-
 // https://github.com/semantic-release/changelog
 const changelog = [
   '@semantic-release/changelog',
   {
-    changelogFile: 'CHANGELOG.md'
+    changelogFile: 'CHANGELOG.md',
+    changelogTitle: '# CHANGELOG'
   }
 ]
 
@@ -59,8 +56,9 @@ const github = [
 ]
 
 // https://github.com/semantic-release/npm
-// Even if not publishing on npm, the npm plugin is needed to bump the version.
-const npm = ['@semantic-release/npm', { npmPublish: false, pkgRoot: '.' }]
+// Even if not publishing to npm.js, this plugin is required to bump the version
+// in package.json.
+const npm = ['@semantic-release/npm', { npmPublish: false }]
 
 // https://github.com/semantic-release/release-notes-generator
 const releaseNotesGenerator = [

@@ -89,15 +89,15 @@ jobs:
       - name: Dump data
         run: echo "${{ steps.ackee.outputs.data }}"
 
-  action-v1-0-0:
-    name: 📈 Run action @v1.0.0
+  action-v1-1-0:
+    name: 📈 Run action @v1.1.0
     runs-on: ubuntu-latest
     steps:
       - name: 🛎️ Checkout repo
         uses: actions/checkout@v2
       - name: ⬇️ Fetch data from Ackee
         id: ackee
-        uses: jackdbd/ackee-action@v1.0.0
+        uses: jackdbd/ackee-action@v1.1.0
         with:
           endpoint: ${{ secrets.INPUT_ENDPOINT }}
           username: ${{ secrets.INPUT_USERNAME }}

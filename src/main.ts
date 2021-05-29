@@ -69,9 +69,6 @@ export async function run(): Promise<void> {
     core.setFailed((error as Error).message)
   }
 }
-// TODO: use saveState('pidToKill') to perform a cleanup
-// https://github.com/actions/toolkit/blob/main/packages/core/README.md
-
-// the `void` operator here is to make ESlint happy. It's this rule:
+// the `void` operator here is to make ESlint happy. It's because of this rule:
 // https://github.com/typescript-eslint/typescript-eslint/blob/master/packages/eslint-plugin/docs/rules/no-floating-promises.md
 void run()
