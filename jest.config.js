@@ -7,6 +7,7 @@ const config = {
     }
   },
   moduleFileExtensions: ['js', 'ts'],
+  setupFilesAfterEnv: ['./jest.setup.js'],
   testEnvironment: 'node',
   testMatch: ['**/*.test.ts'],
   testRunner: 'jest-circus/runner',
@@ -15,5 +16,7 @@ const config = {
   },
   verbose: true
 }
+
+// console.log('=== jest config ===', config)
 
 module.exports = config
