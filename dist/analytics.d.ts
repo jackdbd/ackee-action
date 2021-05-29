@@ -32,6 +32,7 @@ interface AckeeConfig {
     endpoint: string;
     domainId: string;
     numTopPages?: number;
+    query?: string;
     token: string;
 }
 declare type MakeAnalyticsClient = (config: AckeeConfig) => {
@@ -39,6 +40,7 @@ declare type MakeAnalyticsClient = (config: AckeeConfig) => {
     domainsFacts: Thunk<DomainFacts[]>;
     events: Thunk<Event[]>;
     facts: Thunk<Facts>;
+    resultFromQuery?: Thunk<string>;
     topPages: Thunk<Metric[]>;
 };
 export declare const NUM_TOP_PAGES = 10;

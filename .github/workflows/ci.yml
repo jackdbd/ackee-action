@@ -42,6 +42,35 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
+  action-development:
+    name: ⏱️ Run action
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛎️ Checkout repo
+        uses: actions/checkout@v2
+      - name: ⬇️ Fetch data from Ackee
+        id: ackee
+        uses: ./
+        with:
+          endpoint: ${{ secrets.INPUT_ENDPOINT }}
+          username: ${{ secrets.INPUT_USERNAME }}
+          password: ${{ secrets.INPUT_PASSWORD }}
+          domain_id: ${{ secrets.INPUT_DOMAIN_ID }}
+          num_top_pages: '5'
+          query: |
+            query getTop10BrowsersOfLast6Months {
+              domains {
+                statistics {
+                  browsers(sorting: TOP, type: WITH_VERSION, range: LAST_6_MONTHS, limit: 10) {
+                    id
+                    count
+                  }
+                }
+              }
+            }
+      - name: Dump data
+        run: echo "${{ steps.ackee.outputs.data }}"
+
   action-main:
     name: ⏱️ Run action @main
     runs-on: ubuntu-latest

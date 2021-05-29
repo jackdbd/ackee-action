@@ -34,6 +34,7 @@ export async function run(): Promise<void> {
       endpoint,
       domainId,
       numTopPages,
+      query,
       token
     })
     core.saveState('clientInitialized', true)
@@ -45,6 +46,10 @@ export async function run(): Promise<void> {
     const events = await analytics.events()
     const facts = await analytics.facts()
     const topPages = await analytics.topPages()
+    let result: string | undefined = undefined
+    if (analytics.resultFromQuery) {
+      result = await analytics.resultFromQuery()
+    }
     core.saveState('fetchEnded', true)
 
     // stringify or not? Probably yes...
@@ -54,6 +59,7 @@ export async function run(): Promise<void> {
       domainsFacts,
       events,
       facts,
+      result,
       topPages
     })
     core.debug(`${NAME} OUTPUT[data] = ${data}`)
