@@ -12,13 +12,13 @@ on:
       - '**.md'
 
 jobs:
-  build-and-test:
-    name: 📦 Bundle action on [${{ matrix.os }}, Node ${{ matrix.node }}]
+  test:
+    name: 🔍 Test on [${{ matrix.os }}, Node ${{ matrix.node }}]
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest]
-        node: ['12.x']
+        node: ['12.x', '14.17.0']
     steps:
       - name: 🛎️ Checkout repo
         uses: actions/checkout@v2
@@ -40,13 +40,27 @@ jobs:
         uses: coverallsapp/github-action@v1.1.2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: 🚀 Release with semantic-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npm run release
 
-  integration-test:
-    name: 📈 Run action without building
+  action-main:
+    name: ⏱️ Run action @main
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛎️ Checkout repo
+        uses: actions/checkout@v2
+      - name: ⬇️ Fetch data from Ackee
+        id: ackee
+        uses: jackdbd/ackee-action@main
+        with:
+          endpoint: ${{ secrets.INPUT_ENDPOINT }}
+          username: ${{ secrets.INPUT_USERNAME }}
+          password: ${{ secrets.INPUT_PASSWORD }}
+          domain_id: ${{ secrets.INPUT_DOMAIN_ID }}
+          num_top_pages: '5'
+      - name: Dump data
+        run: echo "${{ steps.ackee.outputs.data }}"
+
+  action-v1-0-0:
+    name: 📈 Run action @v1.0.0
     runs-on: ubuntu-latest
     steps:
       - name: 🛎️ Checkout repo
@@ -81,3 +95,23 @@ jobs:
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
         with:
           args: '{\"channel\":\"${{ env.SLACK_CHANNEL_ID }}\",\"text\":\"${{ env.ACKEE_REPORT }}\"}'
+
+  release:
+    name: 📣 Release
+    needs: [test, action-main]
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛎️ Checkout repo
+        uses: actions/checkout@v2
+      - name: 🖥️ Setup Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+      - name: 👨‍💻 Install dependencies
+        run: npm ci
+      - name: 📦 Bundle action
+        run: npm run bundle
+      - name: 📣 Release with semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run release
