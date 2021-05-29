@@ -1,6 +1,6 @@
 # Ackee Analytics Action 📊 📈
 
-![ci workflow](https://github.com/jackdbd/ackee-action/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/jackdbd/ackee-action/badge.svg?branch=main)](https://coveralls.io/github/jackdbd/ackee-action?branch=main) [![CodeFactor](https://www.codefactor.io/repository/github/jackdbd/ackee-action/badge)](https://www.codefactor.io/repository/github/jackdbd/ackee-action)
+[![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release) [![Coventional Commits guidelines](https://img.shields.io/badge/Conventional%20Commits-1.0.0-yellow.svg)](https://www.conventionalcommits.org/en/v1.0.0/) ![ci workflow](https://github.com/jackdbd/ackee-action/actions/workflows/ci.yml/badge.svg) [![Coverage Status](https://coveralls.io/repos/github/jackdbd/ackee-action/badge.svg?branch=main)](https://coveralls.io/github/jackdbd/ackee-action?branch=main) [![CodeFactor](https://www.codefactor.io/repository/github/jackdbd/ackee-action/badge)](https://www.codefactor.io/repository/github/jackdbd/ackee-action)
 
 GitHub action to generate an Ackee analytics report.
 
