@@ -212,10 +212,23 @@ const makeTopPages: MakeTopPages = (gqlClient, domainId, numPages) => {
   }
 }
 
+/**
+ * HOF that accepts any GraphQL query from the caller, and POST the query to the
+ * Ackee server. The caller must provide a query which satisfies the Ackee
+ * GraphQL schema.
+ */
+const makeResultFromQuery = (gqlClient: GraphQLClient, query: string) => {
+  return async function customQuery() {
+    const data: string = await gqlClient.request(query)
+    return data
+  }
+}
+
 interface AckeeConfig {
   endpoint: string
   domainId: string
   numTopPages?: number
+  query?: string
   token: string
 }
 
@@ -226,6 +239,7 @@ type MakeAnalyticsClient = (
   domainsFacts: Thunk<DomainFacts[]>
   events: Thunk<Event[]>
   facts: Thunk<Facts>
+  resultFromQuery?: Thunk<string>
   topPages: Thunk<Metric[]>
 }
 
@@ -240,6 +254,7 @@ export const NUM_TOP_PAGES = 10
 export const makeAnalyticsClient: MakeAnalyticsClient = ({
   endpoint,
   domainId,
+  query,
   numTopPages = NUM_TOP_PAGES,
   token
 }) => {
@@ -251,11 +266,24 @@ export const makeAnalyticsClient: MakeAnalyticsClient = ({
       authorization: `Bearer ${token}`
     }
   })
+
+  const domains = makeDomains(gqlClient)
+  const domainsFacts = makeDomainsFacts(gqlClient)
+  const events = makeEvents(gqlClient)
+  const facts = makeFactsByDomainId(gqlClient, domainId)
+  const topPages = makeTopPages(gqlClient, domainId, numTopPages)
+
+  let resultFromQuery: Thunk<string> | undefined = undefined
+  if (query) {
+    resultFromQuery = makeResultFromQuery(gqlClient, query)
+  }
+
   return {
-    domains: makeDomains(gqlClient),
-    domainsFacts: makeDomainsFacts(gqlClient),
-    events: makeEvents(gqlClient),
-    facts: makeFactsByDomainId(gqlClient, domainId),
-    topPages: makeTopPages(gqlClient, domainId, numTopPages)
+    resultFromQuery,
+    domains,
+    domainsFacts,
+    events,
+    facts,
+    topPages
   }
 }

@@ -26,6 +26,25 @@ GitHub action to generate an Ackee analytics report.
 
 Optional — The top-performing N pages of the domain. Defaults to `10`.
 
+### `query`
+
+Optional — A custom GraphQL query. Maybe use the [Ackee demo](https://demo.ackee.electerious.com/api) to come up with your custom GraphQL query.
+
+For example:
+
+```graphql
+query getTop10BrowsersOfLast6Months {
+  domains {
+    statistics {
+      browsers(sorting: TOP, type: WITH_VERSION, range: LAST_6_MONTHS, limit: 10) {
+        id
+        count
+      }
+    }
+  }
+}
+```
+
 ## Outputs
 
 ### `data`
