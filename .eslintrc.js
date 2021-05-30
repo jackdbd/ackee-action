@@ -12,6 +12,9 @@ const github = {
     // in rare occasions I want to disable ESlint with eslint-disable, but I
     // definitely want to be reminded where this occurs.
     'eslint-comments/no-use': 'warn',
+    // TODO: understand what's the issue here.
+    // https://github.com/benmosher/eslint-plugin-import/blob/798eed7e559adab2eac07bf1b3e3518d4b7a4296/docs/rules/no-named-as-default.md
+    'import/no-named-as-default': 'warn',
     'import/no-namespace': 'off'
   }
 }

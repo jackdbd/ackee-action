@@ -1,0 +1,31 @@
+{
+  "data": {
+    "domain": {
+      "title": "giacomodebidda.com",
+      "statistics": {
+        "sizes": [
+          {
+            "id": "1920px x 1080px",
+            "count": 1255
+          },
+          {
+            "id": "1536px x 864px",
+            "count": 470
+          },
+          {
+            "id": "1366px x 768px",
+            "count": 457
+          },
+          {
+            "id": "1440px x 900px",
+            "count": 274
+          },
+          {
+            "id": "2560px x 1440px",
+            "count": 249
+          }
+        ]
+      }
+    }
+  }
+}

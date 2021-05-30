@@ -1,0 +1,23 @@
+{
+  "data": {
+    "domain": {
+      "title": "giacomodebidda.com",
+      "statistics": {
+        "browsers": [
+          {
+            "id": "Chrome 90.0.4430.212",
+            "count": 396
+          },
+          {
+            "id": "Firefox 88.0",
+            "count": 101
+          },
+          {
+            "id": "Chrome 91.0.4472.77",
+            "count": 38
+          }
+        ]
+      }
+    }
+  }
+}

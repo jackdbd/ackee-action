@@ -61,7 +61,6 @@ describe('makeAnalyticsClient', () => {
     })
 
     expect(client).toHaveProperty('domains')
-    expect(client).toHaveProperty('domainsFacts')
     expect(client).toHaveProperty('events')
     expect(client).toHaveProperty('facts')
     expect(client.resultFromQuery).toBeUndefined()
@@ -124,32 +123,6 @@ describe('facts', () => {
     expect(facts).toHaveProperty('viewsToday')
     expect(facts).toHaveProperty('viewsMonth')
     expect(facts).toHaveProperty('viewsYear')
-  })
-})
-
-describe('domainsFacts', () => {
-  const ackeeAuthConfig = {
-    endpoint: process.env.INPUT_ENDPOINT as string,
-    username: process.env.INPUT_USERNAME as string,
-    password: process.env.INPUT_PASSWORD as string
-  }
-
-  it('returns the expected data', async () => {
-    const token = await getBearerToken(ackeeAuthConfig)
-    const client = makeAnalyticsClient({
-      endpoint: process.env.INPUT_ENDPOINT as string,
-      domainId: process.env.INPUT_DOMAIN_ID as string,
-      token
-    })
-
-    const domainsFacts = await client.domainsFacts()
-
-    expect(domainsFacts).toHaveLength(1)
-    for (const domain of domainsFacts) {
-      expect(domain).toHaveProperty('id')
-      expect(domain).toHaveProperty('title')
-      expect(domain).toHaveProperty('facts')
-    }
   })
 })
 

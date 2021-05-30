@@ -1,24 +1,8 @@
+import { Facts, Metric, SizesForDomainId, ViewsAndDurationsForDomainId } from './interfaces';
 declare type Thunk<T> = () => Promise<T>;
 interface Domain {
     id: string;
     title: string;
-}
-interface Facts {
-    activeVisitors: number;
-    averageDuration: number;
-    averageViews: number;
-    viewsToday: number;
-    viewsMonth: number;
-    viewsYear: number;
-}
-interface DomainFacts {
-    facts: Facts;
-    id: string;
-    title: string;
-}
-interface Metric {
-    id: string;
-    count: number;
 }
 interface Event {
     id: string;
@@ -36,12 +20,13 @@ interface AckeeConfig {
     token: string;
 }
 declare type MakeAnalyticsClient = (config: AckeeConfig) => {
+    dailyUniqueViewsAndDurations: Thunk<ViewsAndDurationsForDomainId>;
     domains: Thunk<Domain[]>;
-    domainsFacts: Thunk<DomainFacts[]>;
     events: Thunk<Event[]>;
     facts: Thunk<Facts>;
     resultFromQuery?: Thunk<string>;
     topPages: Thunk<Metric[]>;
+    topSizesInSixMonths: Thunk<SizesForDomainId>;
 };
 export declare const NUM_TOP_PAGES = 10;
 export declare const makeAnalyticsClient: MakeAnalyticsClient;

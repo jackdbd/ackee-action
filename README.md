@@ -45,6 +45,16 @@ query getTop10BrowsersOfLast6Months {
 }
 ```
 
+Quick links for the Ackee GraphQL schema:
+
+- [domain statistics](https://github.com/electerious/Ackee/blob/master/src/types/domainStatistics.js)
+- [domain](https://github.com/electerious/Ackee/blob/master/src/types/domains.js)
+- [event statistics](https://github.com/electerious/Ackee/blob/master/src/types/eventStatistics.js)
+- [records](https://github.com/electerious/Ackee/blob/master/src/types/records.js)
+- [ranges](https://github.com/electerious/Ackee/blob/master/src/constants/ranges.js)
+- [facts](https://github.com/electerious/Ackee/blob/master/src/types/facts.js)
+- [actions](https://github.com/electerious/Ackee/blob/master/src/types/actions.js)
+
 ## Outputs
 
 ### `data`

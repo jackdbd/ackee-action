@@ -43,7 +43,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
   action-development:
-    name: ⏱️ Run action
+    name: 📈 Run ackee-action@HEAD
     runs-on: ubuntu-latest
     steps:
       - name: 🛎️ Checkout repo
@@ -68,11 +68,33 @@ jobs:
                 }
               }
             }
-      - name: Dump data
-        run: echo "${{ steps.ackee.outputs.data }}"
+      - name: 📨 Send report to Telegram
+        uses: appleboy/telegram-action@v0.1.1
+        # https://github.com/appleboy/telegram-action
+        env:
+          HTML_MESSAGE: ${{ steps.ackee.outputs.message }}
+        with:
+          to: ${{ secrets.TELEGRAM_TO }}
+          token: ${{ secrets.TELEGRAM_TOKEN }}
+          format: html
+          disable_web_page_preview: true
+          # photo: ./dist/house.png
+          # photo: ./images/clock.png
+          # document: ./images/ray.png
+          message: ${{ env.HTML_MESSAGE }}
+      - name: 📨 Send report to Slack
+        uses: pullreminders/slack-action@v1.0.7
+        # https://github.com/abinoda/slack-action
+        env:
+          HTML_MESSAGE: ${{ steps.ackee.outputs.message }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+        with:
+          args: '{\"channel\":\"${{ env.SLACK_CHANNEL_ID }}\",\"text\":\"${{ env.HTML_MESSAGE }}\"}'
 
   action-main:
-    name: ⏱️ Run action @main
+    name: 📈 Run ackee-action@main
+    if: ${{ 'foo' == 'bar' }} # TODO: remove this
     runs-on: ubuntu-latest
     steps:
       - name: 🛎️ Checkout repo
@@ -88,9 +110,12 @@ jobs:
           num_top_pages: '5'
       - name: Dump data
         run: echo "${{ steps.ackee.outputs.data }}"
+      - name: Dump message
+        run: echo "${{ steps.ackee.outputs.message }}"
 
   action-v1-1-0:
-    name: 📈 Run action @v1.1.0
+    name: 📈 Run ackee-action@v1.1.0
+    if: ${{ 'foo' == 'bar' }} # TODO: remove this
     runs-on: ubuntu-latest
     steps:
       - name: 🛎️ Checkout repo
@@ -106,25 +131,8 @@ jobs:
           num_top_pages: '5'
       - name: Dump data
         run: echo "${{ steps.ackee.outputs.data }}"
-      - name: 📨 Send report to Telegram
-        uses: appleboy/telegram-action@master
-        env:
-          ACKEE_REPORT: ${{ steps.ackee.outputs.data }}
-        with:
-          to: ${{ secrets.TELEGRAM_TO }}
-          token: ${{ secrets.TELEGRAM_TOKEN }}
-          message: |
-            🚀 Ackee report!
-
-            ${{ env.ACKEE_REPORT }}
-      - name: 📨 Send report to Slack
-        uses: pullreminders/slack-action@master
-        env:
-          ACKEE_REPORT: ${{ steps.ackee.outputs.data }}
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
-        with:
-          args: '{\"channel\":\"${{ env.SLACK_CHANNEL_ID }}\",\"text\":\"${{ env.ACKEE_REPORT }}\"}'
+      - name: Dump message
+        run: echo "${{ steps.ackee.outputs.message }}"
 
   release:
     name: 📣 Release

@@ -2,6 +2,7 @@ import { inspect } from 'util'
 import * as core from '@actions/core'
 import { getBearerToken } from './auth'
 import { makeAnalyticsClient, NUM_TOP_PAGES } from './analytics'
+import { message } from './components/message'
 
 const NAME = '🚀 [ackee-action]'
 
@@ -41,29 +42,43 @@ export async function run(): Promise<void> {
 
     core.debug(`${NAME} Fetch data from Ackee GraphQL server`)
     core.saveState('fetchStarted', true)
+
     const domains = await analytics.domains()
-    const domainsFacts = await analytics.domainsFacts()
     const events = await analytics.events()
     const facts = await analytics.facts()
     const topPages = await analytics.topPages()
+    const dailyUniqueViewsAndDurations = await analytics.dailyUniqueViewsAndDurations()
+    const topSizesInSixMonths = await analytics.topSizesInSixMonths()
+
     let result: string | undefined = undefined
     if (analytics.resultFromQuery) {
       result = await analytics.resultFromQuery()
     }
+
     core.saveState('fetchEnded', true)
 
     // stringify or not? Probably yes...
     // https://github.com/actions/toolkit/issues/370
     const data = JSON.stringify({
+      dailyUniqueViewsAndDurations,
       domains,
-      domainsFacts,
       events,
       facts,
       result,
-      topPages
+      topPages,
+      topSizesInSixMonths
     })
     core.debug(`${NAME} OUTPUT[data] = ${data}`)
     core.setOutput('data', data)
+    core.setOutput(
+      'message',
+      message({
+        facts,
+        tableData: dailyUniqueViewsAndDurations,
+        topPages,
+        topSizes: topSizesInSixMonths.sizes
+      })
+    )
   } catch (error) {
     core.debug(inspect(error))
     core.setFailed((error as Error).message)

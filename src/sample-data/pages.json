@@ -1,0 +1,31 @@
+{
+  "data": {
+    "domain": {
+      "title": "giacomodebidda.com",
+      "statistics": {
+        "pages": [
+          {
+            "id": "https://giacomodebidda.com/posts/mvc-pattern-in-python-introduction-and-basicmodel",
+            "count": 536
+          },
+          {
+            "id": "https://giacomodebidda.com/posts/reading-large-excel-files-with-pandas",
+            "count": 104
+          },
+          {
+            "id": "https://giacomodebidda.com/posts/mvc-pattern-in-python-sqlite",
+            "count": 80
+          },
+          {
+            "id": "https://giacomodebidda.com/posts/strategy-pattern-in-python",
+            "count": 73
+          },
+          {
+            "id": "https://giacomodebidda.com/posts/mvc-pattern-in-python-dataset",
+            "count": 53
+          }
+        ]
+      }
+    }
+  }
+}

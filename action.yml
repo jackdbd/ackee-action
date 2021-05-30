@@ -28,6 +28,10 @@ outputs:
   data:
     description: >
       The `data` key of the response body received from the Ackee API.
+  message:
+    description: >
+      Ackee data rendered as string. Ready to be passed to a chat app like
+      Telegram.
 
 runs:
   using: 'node12'

@@ -1,4 +1,10 @@
 import { gql, GraphQLClient } from 'graphql-request'
+import {
+  Facts,
+  Metric,
+  SizesForDomainId,
+  ViewsAndDurationsForDomainId
+} from './interfaces'
 
 // TODO: how to get the type of the returned value of a GraphQL query?
 // https://github.com/prisma-labs/graphql-request#graphql-code-generators-graphql-request-typescript-plugin
@@ -29,18 +35,6 @@ const makeDomains: MakeDomains = (gqlClient) => {
     const data = await gqlClient.request<{ domains: Domain[] }>(query)
     return data.domains
   }
-}
-
-/**
- * https://github.com/electerious/Ackee/blob/264df73a506df5f0f01a7b1eddaea17b7d17cd11/src/types/facts.js
- */
-interface Facts {
-  activeVisitors: number
-  averageDuration: number
-  averageViews: number
-  viewsToday: number
-  viewsMonth: number
-  viewsYear: number
 }
 
 /**
@@ -89,45 +83,6 @@ const makeFactsByDomainId: MakeFactsByDomainId = (gqlClient, domainId) => {
   }
 }
 
-interface DomainFacts {
-  facts: Facts
-  id: string
-  title: string
-}
-
-type MakeDomainsFacts = (gqlClient: GraphQLClient) => Thunk<DomainFacts[]>
-
-/**
- * TODO: docs
- */
-const makeDomainsFacts: MakeDomainsFacts = (gqlClient) => {
-  const query = gql`
-    query getDomainsFacts {
-      domains {
-        id
-        title
-        facts {
-          activeVisitors
-          averageViews
-          averageDuration
-          viewsToday
-          viewsMonth
-          viewsYear
-        }
-      }
-    }
-  `
-  return async function domainsFacts() {
-    const data = await gqlClient.request<{ domains: DomainFacts[] }>(query)
-    return data.domains
-  }
-}
-
-interface Metric {
-  id: string
-  count: number
-}
-
 interface Event {
   id: string
   title: string
@@ -169,11 +124,15 @@ const makeEvents: MakeEvents = (gqlClient) => {
 }
 
 interface Statistics {
+  durations: Metric[]
   pages: Metric[]
+  sizes: Metric[]
+  views: Metric[]
 }
 
 interface DomainStatistics {
   statistics: Statistics
+  title: string
 }
 
 type MakeTopPages = (
@@ -203,12 +162,61 @@ const makeTopPages: MakeTopPages = (gqlClient, domainId, numPages) => {
     domainId,
     numPages
   }
+
   return async function topPages() {
     const data = await gqlClient.request<{ domain: DomainStatistics }>(
       query,
       variables
     )
     return data.domain.statistics.pages
+  }
+}
+
+type MakeDailyUniqueViewsAndDurations = (
+  gqlClient: GraphQLClient,
+  domainId: string,
+  days: number
+) => Thunk<ViewsAndDurationsForDomainId>
+
+const makeDailyUniqueViewsAndDurations: MakeDailyUniqueViewsAndDurations = (
+  gqlClient,
+  domainId,
+  numDays
+) => {
+  const requestDocument = gql`
+    query getDailyUniqueViewsAndDurations($domainId: ID!, $limit: Int!) {
+      domain(id: $domainId) {
+        title
+        statistics {
+          durations(interval: DAILY, limit: $limit) {
+            id
+            count
+          }
+          views(interval: DAILY, type: UNIQUE, limit: $limit) {
+            id
+            count
+          }
+        }
+      }
+    }
+  `
+
+  const variables = {
+    domainId,
+    limit: numDays
+  }
+
+  return async function dailyUniqueViewsAndDurations() {
+    const data = await gqlClient.request<{ domain: DomainStatistics }>(
+      requestDocument,
+      variables
+    )
+
+    return {
+      title: data.domain.title,
+      views: data.domain.statistics.views,
+      durations: data.domain.statistics.durations
+    }
   }
 }
 
@@ -235,18 +243,68 @@ interface AckeeConfig {
 type MakeAnalyticsClient = (
   config: AckeeConfig
 ) => {
+  dailyUniqueViewsAndDurations: Thunk<ViewsAndDurationsForDomainId>
   domains: Thunk<Domain[]>
-  domainsFacts: Thunk<DomainFacts[]>
   events: Thunk<Event[]>
   facts: Thunk<Facts>
   resultFromQuery?: Thunk<string>
   topPages: Thunk<Metric[]>
+  topSizesInSixMonths: Thunk<SizesForDomainId>
 }
 
 /**
  * top-performing pages of the domainId monitored by Ackee.
  */
 export const NUM_TOP_PAGES = 10
+
+const NUM_DAYS_REPORT = 7
+
+type MakeTopSizesInSixMonths = (
+  gqlClient: GraphQLClient,
+  domainId: string
+) => Thunk<SizesForDomainId>
+
+const makeTopSizesInSixMonths: MakeTopSizesInSixMonths = (
+  gqlClient,
+  domainId
+) => {
+  const requestDocument = gql`
+    query getTopSizesInRange($domainId: ID!, $range: Range, $limit: Int!) {
+      domain(id: $domainId) {
+        title
+        statistics {
+          sizes(
+            sorting: TOP
+            type: SCREEN_RESOLUTION
+            range: $range
+            limit: $limit
+          ) {
+            id
+            count
+          }
+        }
+      }
+    }
+  `
+
+  const variables = {
+    domainId,
+    limit: 5,
+    range: 'LAST_6_MONTHS'
+  }
+
+  return async function topSizesInSixMonths() {
+    const data = await gqlClient.request<{ domain: DomainStatistics }>(
+      requestDocument,
+      variables
+    )
+
+    return {
+      title: data.domain.title,
+      sizes: data.domain.statistics.sizes
+    }
+  }
+}
 
 /**
  * Create a client to query the Ackee server GraphQL API.
@@ -268,10 +326,15 @@ export const makeAnalyticsClient: MakeAnalyticsClient = ({
   })
 
   const domains = makeDomains(gqlClient)
-  const domainsFacts = makeDomainsFacts(gqlClient)
   const events = makeEvents(gqlClient)
   const facts = makeFactsByDomainId(gqlClient, domainId)
   const topPages = makeTopPages(gqlClient, domainId, numTopPages)
+  const dailyUniqueViewsAndDurations = makeDailyUniqueViewsAndDurations(
+    gqlClient,
+    domainId,
+    NUM_DAYS_REPORT
+  )
+  const topSizesInSixMonths = makeTopSizesInSixMonths(gqlClient, domainId)
 
   let resultFromQuery: Thunk<string> | undefined = undefined
   if (query) {
@@ -279,11 +342,12 @@ export const makeAnalyticsClient: MakeAnalyticsClient = ({
   }
 
   return {
-    resultFromQuery,
+    dailyUniqueViewsAndDurations,
     domains,
-    domainsFacts,
     events,
     facts,
-    topPages
+    resultFromQuery,
+    topPages,
+    topSizesInSixMonths
   }
 }
